@@ -110,7 +110,7 @@ public class MiniBrowser {
             }
 
             PrintWriter printWriter = new PrintWriter(client.getOutputStream(),true);       //把请求信息刷入socket中
-//            printWriter.println(requestString);
+            printWriter.println(requestString);
 
             InputStream is = client.getInputStream();                   //获取输出信息
             ByteArrayOutputStream baos = new ByteArrayOutputStream();

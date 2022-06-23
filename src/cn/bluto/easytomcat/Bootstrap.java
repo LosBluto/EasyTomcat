@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 public class Bootstrap {
     public static void main(String[] args) {
         try {
-            int port = 80;
+            int port = 8080;
             if (!NetUtil.isUsableLocalPort(port)) {
                 System.out.println("port " + port + " is used,please change");
                 return;
