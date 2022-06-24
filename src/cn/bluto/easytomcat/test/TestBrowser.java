@@ -1,10 +1,12 @@
 package cn.bluto.easytomcat.test;
 
-import cn.bluto.easytomcat.test.browser.MiniBrowser;
+import cn.bluto.easytomcat.tools.browser.MiniBrowser;
 import cn.hutool.core.util.NetUtil;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.PrintWriter;
 
 /**
  * @author LosBluto

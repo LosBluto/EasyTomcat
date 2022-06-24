@@ -1,11 +1,12 @@
 package cn.bluto.easytomcat;
 
+import cn.bluto.easytomcat.http.Request;
+import cn.bluto.easytomcat.http.Response;
+import cn.bluto.easytomcat.util.Constant;
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.NetUtil;
-import cn.hutool.poi.exceptions.POIException;
 
-import java.beans.PropertyEditorSupport;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -30,26 +31,37 @@ public class Bootstrap {
             ServerSocket server = new ServerSocket(port);   //创建服务
             while (true) {
                 Socket socket = server.accept();            //获取服务的套接字
-                InputStream is = socket.getInputStream();
-                byte[] buffer = new byte[1024];             //1024大小的缓冲区,目前直接读入缓冲区
-                is.read(buffer);
-                String requestString = new String(buffer, StandardCharsets.UTF_8);
-                System.out.println("请求信息为:\r\n"+requestString);
+                Request request = new Request(socket);
+                System.out.println("请求信息为:\r\n"+request.getRequestString());
+                System.out.println("请求URI为:\r\n"+request.getUri());
 
-                OutputStream os = socket.getOutputStream(); //获取输出流
-                String responseHead = "Http/1.1 200 OK\r\n" + "Content-Type:"+"text/html\r\n\r\n";  //消息头和消息体之间间隔了一行
-                String responseBody = "hello, this is easytomcat!";
-                String responseString = responseHead + responseBody;
-                os.write(responseString.getBytes());
-                os.flush();
-                os.close();
+                Response response = new Response();
+                response.getWriter().println("hello, this is easytomcat!");
+
+                handle200(socket,response);
             }
         }catch (IOException e) {
             System.err.println("发生错误");
             e.printStackTrace();
         }
+    }
+
+    private static void handle200(Socket socket, Response response) throws IOException {
+        String contentType = response.getContentType();
+        String headText = Constant.response_head_202;
+        headText = String.format(headText, contentType);
+
+        byte[] head = headText.getBytes(StandardCharsets.UTF_8);
+        byte[] content = response.getBytes();
+
+        byte[] result = new byte[head.length + content.length];
+        ArrayUtil.copy(head,0,result,0,head.length);
+        ArrayUtil.copy(content,0,result,head.length,content.length);
 
 
+        OutputStream os = socket.getOutputStream();
+        os.write(result);
+        os.close();
     }
 
 }

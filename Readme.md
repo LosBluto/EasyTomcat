@@ -13,3 +13,12 @@
 ``
 使用PrintWriter进行IO操作(对输出设备输入数据)
 ``
+### 第三天
+#### 任务
+``
+初步构建request与response类
+``
+#### 问题
+``
+为什么response使用stringwriter与printwriter结合来存放数据，为何不直接使用string
+``

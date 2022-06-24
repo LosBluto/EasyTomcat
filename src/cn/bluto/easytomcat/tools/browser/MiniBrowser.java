@@ -1,10 +1,7 @@
-package cn.bluto.easytomcat.test.browser;
-
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
+package cn.bluto.easytomcat.tools.browser;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -113,26 +110,37 @@ public class MiniBrowser {
             printWriter.println(requestString);
 
             InputStream is = client.getInputStream();                   //获取输出信息
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            int bufferSize = 1024;
-            byte[] buffer = new byte[bufferSize];
-            while (true) {
-                int length = is.read(buffer);
-                if (-1 == length)
-                    break;
-                baos.write(buffer,0,length);
-                if (length != bufferSize)          //若无读取数据了直接结束，减少一次循环
-                    break;
-            }
 
-            result = baos.toByteArray();
-            baos.close();
+            result = getBytes(is);
 
+            client.close();
         } catch (IOException e) {
             e.printStackTrace();
             result = e.toString().getBytes(StandardCharsets.UTF_8);     //异常信息编码并返回
         }
 
         return result;
+    }
+
+    /**
+     * 从输入流获取bytes的公共方法
+     * @param is
+     * @return
+     * @throws IOException
+     */
+    public static byte[] getBytes(InputStream is) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int bufferSize = 1024;
+        byte[] buffer = new byte[bufferSize];
+        while (true) {
+            int length = is.read(buffer);
+            if (-1 == length)
+                break;
+            baos.write(buffer,0,length);
+            if (length != bufferSize)          //若无读取数据了直接结束，减少一次循环
+                break;
+        }
+
+        return baos.toByteArray();
     }
 }
