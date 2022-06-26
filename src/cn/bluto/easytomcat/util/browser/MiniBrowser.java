@@ -1,4 +1,4 @@
-package cn.bluto.easytomcat.tools.browser;
+package cn.bluto.easytomcat.util.browser;
 
 import java.io.*;
 import java.net.InetSocketAddress;

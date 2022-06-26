@@ -3,14 +3,22 @@ package cn.bluto.easytomcat;
 import cn.bluto.easytomcat.http.Request;
 import cn.bluto.easytomcat.http.Response;
 import cn.bluto.easytomcat.util.Constant;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.NetUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.log.LogFactory;
+import cn.hutool.system.SystemUtil;
+import org.apache.log4j.PropertyConfigurator;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author LosBluto
@@ -22,6 +30,8 @@ import java.nio.charset.StandardCharsets;
 public class Bootstrap {
     public static void main(String[] args) {
         try {
+            logJVM();
+
             int port = 8080;
             if (!NetUtil.isUsableLocalPort(port)) {
                 System.out.println("port " + port + " is used,please change");
@@ -36,7 +46,21 @@ public class Bootstrap {
                 System.out.println("请求URI为:\r\n"+request.getUri());
 
                 Response response = new Response();
-                response.getWriter().println("hello, this is easytomcat!");
+                String uri = request.getUri();
+                if (uri == null)
+                    continue;
+                if (uri.equals("/")) {
+                    response.getWriter().println("hello, this is easytomcat!");
+                }else {                 //若uri后有路径
+                    String temp = StrUtil.removePrefix(uri,"/");
+                    File file = new File(Constant.rootFolder,temp);
+                    if (file.exists()) {            //存在该文件
+                        String fileContent = FileUtil.readUtf8String(file);
+                        response.getWriter().println(fileContent);
+                    }else {             //文件不存在
+                        response.getWriter().println("File not found!");
+                    }
+                }
 
                 handle200(socket,response);
             }
@@ -62,6 +86,26 @@ public class Bootstrap {
         OutputStream os = socket.getOutputStream();
         os.write(result);
         os.close();
+    }
+
+    /**
+     * 输出初始化JVM日志信息
+     */
+    private static void logJVM() {
+        Map<String, String> infos = new LinkedHashMap<>();      //为何用linkedhashmap
+        infos.put("Server version","LosBluto EasyTomcat/1.0");
+        infos.put("Server built","2022-06-26 11:32");
+        infos.put("Server number","1.0.1");
+        infos.put("OS Name\t", SystemUtil.get("os.name"));
+        infos.put("OS Version",SystemUtil.get("os.version"));
+        infos.put("Architecture",SystemUtil.get("os.architecture"));
+        infos.put("Java Home",SystemUtil.get("java.home"));
+        infos.put("JVM Version",SystemUtil.get("java.runtime.version"));
+        infos.put("JVM Vendor",SystemUtil.get("java.vm.specification.vendor"));
+
+        for (String key : infos.keySet()) {
+            LogFactory.get().info(key + ":\t\t" + infos.get(key));
+        }
     }
 
 }

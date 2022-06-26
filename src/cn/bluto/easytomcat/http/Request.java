@@ -1,6 +1,6 @@
 package cn.bluto.easytomcat.http;
 
-import cn.bluto.easytomcat.tools.browser.MiniBrowser;
+import cn.bluto.easytomcat.util.browser.MiniBrowser;
 import cn.hutool.core.util.StrUtil;
 
 import java.io.IOException;

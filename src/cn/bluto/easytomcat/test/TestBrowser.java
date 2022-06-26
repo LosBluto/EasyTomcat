@@ -1,12 +1,10 @@
 package cn.bluto.easytomcat.test;
 
-import cn.bluto.easytomcat.tools.browser.MiniBrowser;
+import cn.bluto.easytomcat.util.browser.MiniBrowser;
 import cn.hutool.core.util.NetUtil;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.io.PrintWriter;
 
 /**
  * @author LosBluto
@@ -39,6 +37,12 @@ public class TestBrowser {
     public void testHello() {
         String result = getContentString("/");
         Assert.assertEquals(result,"hello, this is easytomcat!");
+    }
+
+    @Test
+    public void testaHtml() {
+        String result = getContentString("/a.html");
+        Assert.assertEquals(result,"hello, easytomcat from a.html!");
     }
 
     private String getContentString(String uri) {

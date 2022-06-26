@@ -22,3 +22,14 @@
 ``
 为什么response使用stringwriter与printwriter结合来存放数据，为何不直接使用string
 ``
+
+### 第四天
+``
+咸鱼了哈哈哈哈哈
+``
+
+### 第五天
+#### 任务
+``
+增加根据路由访问文件的功能，并整理日志输出方式(使用hutool封装后的log4j，无需在每个类都new一个Logger)
+``
