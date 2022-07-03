@@ -3,7 +3,9 @@ package cn.bluto.easytomcat;
 import cn.bluto.easytomcat.http.Request;
 import cn.bluto.easytomcat.http.Response;
 import cn.bluto.easytomcat.util.Constant;
+import cn.bluto.easytomcat.util.ThreadPoolUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.NetUtil;
 import cn.hutool.core.util.StrUtil;
@@ -41,28 +43,42 @@ public class Bootstrap {
             ServerSocket server = new ServerSocket(port);   //创建服务
             while (true) {
                 Socket socket = server.accept();            //获取服务的套接字
-                Request request = new Request(socket);
-                System.out.println("请求信息为:\r\n"+request.getRequestString());
-                System.out.println("请求URI为:\r\n"+request.getUri());
+                ThreadPoolUtil.run(new Runnable() {         //多线程处理任务
+                    @Override
+                    public void run() {
+                        try {
+                            Request request = new Request(socket);
+                            System.out.println("请求信息为:\r\n" + request.getRequestString());
+                            System.out.println("请求URI为:\r\n" + request.getUri());
 
-                Response response = new Response();
-                String uri = request.getUri();
-                if (uri == null)
-                    continue;
-                if (uri.equals("/")) {
-                    response.getWriter().println("hello, this is easytomcat!");
-                }else {                 //若uri后有路径
-                    String temp = StrUtil.removePrefix(uri,"/");
-                    File file = new File(Constant.rootFolder,temp);
-                    if (file.exists()) {            //存在该文件
-                        String fileContent = FileUtil.readUtf8String(file);
-                        response.getWriter().println(fileContent);
-                    }else {             //文件不存在
-                        response.getWriter().println("File not found!");
+                            Response response = new Response();
+                            String uri = request.getUri();
+                            if (null == uri)
+                                return;
+                            if (uri.equals("/")) {
+                                response.getWriter().println("hello, this is easytomcat!");
+                            } else {                 //若uri后有路径
+                                String fileName = StrUtil.removePrefix(uri, "/");
+                                File file = new File(Constant.rootFolder, fileName);
+                                if (file.exists()) {            //存在该文件
+                                    String fileContent = FileUtil.readUtf8String(file);
+                                    response.getWriter().println(fileContent);
+
+                                    if (fileName.equals("timeConsume.html")) {
+                                        ThreadUtil.sleep(1000);
+                                    }
+                                } else {             //文件不存在
+                                    response.getWriter().println("File not found!");
+                                }
+                            }
+
+                            handle200(socket, response);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
+                });
 
-                handle200(socket,response);
             }
         }catch (IOException e) {
             System.err.println("发生错误");
