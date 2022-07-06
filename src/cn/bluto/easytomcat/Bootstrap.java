@@ -1,5 +1,6 @@
 package cn.bluto.easytomcat;
 
+import cn.bluto.easytomcat.catalina.Context;
 import cn.bluto.easytomcat.http.Request;
 import cn.bluto.easytomcat.http.Response;
 import cn.bluto.easytomcat.util.Constant;
@@ -11,7 +12,6 @@ import cn.hutool.core.util.NetUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.LogFactory;
 import cn.hutool.system.SystemUtil;
-import org.apache.log4j.PropertyConfigurator;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +19,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -30,9 +31,11 @@ import java.util.Map;
  * @createTime 2022年06月22日 21:37:00
  */
 public class Bootstrap {
+    public static Map<String, Context> contextMap = new HashMap<>();
     public static void main(String[] args) {
         try {
             logJVM();
+            scanContextsOnWebAppsFolder();
 
             int port = 8080;
             if (!NetUtil.isUsableLocalPort(port)) {
@@ -48,18 +51,25 @@ public class Bootstrap {
                     public void run() {
                         try {
                             Request request = new Request(socket);
-                            System.out.println("请求信息为:\r\n" + request.getRequestString());
-                            System.out.println("请求URI为:\r\n" + request.getUri());
-
                             Response response = new Response();
                             String uri = request.getUri();
                             if (null == uri)
                                 return;
+
+                            System.out.println("请求URI为:\r\n" + request.getUri());
+
+                            Context context = request.getContext();
+
                             if (uri.equals("/")) {
                                 response.getWriter().println("hello, this is easytomcat!");
                             } else {                 //若uri后有路径
-                                String fileName = StrUtil.removePrefix(uri, "/");
-                                File file = new File(Constant.rootFolder, fileName);
+                                String fileName = StrUtil.removePrefix(uri, "/");         //获取去除了前缀的访问路径（具体的应用名称）
+                                File file = new File(context.getDocBase(), fileName);
+
+                                System.out.println("fileName:"+fileName);
+                                System.out.println(context.getDocBase());
+                                System.out.println(file.getPath());
+
                                 if (file.exists()) {            //存在该文件
                                     String fileContent = FileUtil.readUtf8String(file);
                                     response.getWriter().println(fileContent);
@@ -124,4 +134,26 @@ public class Bootstrap {
         }
     }
 
+    private static void scanContextsOnWebAppsFolder() {                 //扫描根目录下的直接应用context
+        File[] files = Constant.webAppsFolder.listFiles();
+        for (File file : files) {
+            if (!file.isDirectory())
+                continue;
+            loadContext(file);
+        }
+    }
+
+    private static void loadContext(File file) {
+        String path = file.getName();               //获取文件的名称
+        if ("ROOT".equals(path)) {
+            path = "/";
+        }else {
+            path = "/" + path;
+        }
+
+        String docBase = file.getAbsolutePath();
+        System.out.println(docBase);
+        contextMap.put(path,new Context(path,docBase));
+
+    }
 }

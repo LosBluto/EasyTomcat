@@ -8,6 +8,7 @@ import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -40,13 +41,13 @@ public class TestBrowser {
     @Test
     public void testHello() {
         String result = getContentString("/");
-        Assert.assertEquals(result,"hello, this is easytomcat!");
+        Assert.assertEquals("hello, this is easytomcat!",result);
     }
 
     @Test
     public void testaHtml() {
         String result = getContentString("/a.html");
-        Assert.assertEquals(result,"hello, easytomcat from a.html!");
+        Assert.assertEquals("hello, easytomcat from a.html!",result);
     }
 
     @Test
@@ -68,6 +69,21 @@ public class TestBrowser {
         long duration = timeInterval.intervalMs();          //终止计时器
         System.out.println(duration);
         Assert.assertTrue(duration < 3000);         //看看总时间是否超过3000，超过3000表示tomcat是单线程工作,<3000表示多线程工作
+    }
+
+    @Test
+    public void testaIndex() {
+        String result = getContentString("/a/index.html");
+        Assert.assertEquals("hello, easytomcat from index.html@a",result);
+    }
+
+    @Test
+    public void test() {
+        String fileName = "a/index.html";
+        String parent = "D:/Project/JAVA/EasyTomcat/webapps/ROOT/a";
+
+        String result = new File(parent,fileName).getAbsolutePath();
+        System.out.println(result);
     }
 
     private String getContentString(String uri) {

@@ -1,5 +1,7 @@
 package cn.bluto.easytomcat.http;
 
+import cn.bluto.easytomcat.Bootstrap;
+import cn.bluto.easytomcat.catalina.Context;
 import cn.bluto.easytomcat.util.browser.MiniBrowser;
 import cn.hutool.core.util.StrUtil;
 
@@ -19,6 +21,8 @@ public class Request {
     private String uri;
     private Socket socket;
 
+    private Context context;
+
     public Request(Socket socket) throws IOException {
         this.socket = socket;
         parseRequestString();
@@ -26,11 +30,26 @@ public class Request {
             return;
 
         parseUri();
+        parseContext();
+        if (!"/".equals(context.getPath()))
+            uri = StrUtil.removePrefix(uri,context.getPath());      //重新确定uri，删除父文件目录的最后才是应用的uri
     }
 
     private void parseRequestString() throws IOException {
         byte[] bytes = MiniBrowser.getBytes(socket.getInputStream());
         requestString = new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    private void parseContext() {
+        String path = StrUtil.subBetween(uri,"/","/");
+        if (null == path)
+            path = "/";
+        else
+            path = "/" + path;
+
+        context = Bootstrap.contextMap.get(path);
+        if (null == context)                                //若未找到该目录
+            context = Bootstrap.contextMap.get("/");        //获取默认root目录对应的上下文
     }
 
     private void parseUri() {
@@ -40,6 +59,10 @@ public class Request {
             return;
         }
         uri = StrUtil.subBefore(temp,"?",false);    //有问号
+    }
+
+    public Context getContext() {
+        return context;
     }
 
     public String getRequestString() {
